@@ -13,7 +13,7 @@ enum SignalMode {
   SIGNAL_RAINBOW
 };
 
-#define SIGNAL_PIN 2
+#define SIGNAL_PIN 12
 #define NUM_SIGNAL_LEDS 7
 #define SIGNAL_CHASE_SPEED 75
 #define SIGNAL_DEFAULT_BRIGHTNESS 128

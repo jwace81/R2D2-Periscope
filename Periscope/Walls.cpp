@@ -8,8 +8,8 @@ int currentWallState = WallStates::WallOff;
 unsigned long lastWallUpdate;
 
 void setupWalls() {
-  wallControllers[0] = &FastLED.addLeds<NEOPIXEL, 9>(wallLeds[0], NUM_WALL_LEDS);
-  wallControllers[1] = &FastLED.addLeds<NEOPIXEL, 10>(wallLeds[1], NUM_WALL_LEDS);
+  wallControllers[0] = &FastLED.addLeds<NEOPIXEL, 2>(wallLeds[0], NUM_WALL_LEDS);
+  wallControllers[1] = &FastLED.addLeds<NEOPIXEL, 11>(wallLeds[1], NUM_WALL_LEDS);
 
   setWallState(WallOff, wallColor);
 }

@@ -9,6 +9,9 @@ unsigned long lastFrontUpdate;
 bool frontStrobeState = false;
 
 void setFrontLightState(int mode, CRGB color = CRGB::White) {
+  currentFrontState = mode;
+  frontColor = color;
+  
   switch(currentFrontState) {
     case FrontStates::FrontOn:
       Serial.println("Front On");
@@ -40,10 +43,12 @@ void processFrontLightCommand(char commandBuffer[], unsigned char commandLength)
   if (commandLength > 2 && isDigit(commandBuffer[2])) {
     frontColor = colorMap[commandBuffer[2] - '0'];
   }
+
+  setFrontLightState(currentFrontState, frontColor);
 }
 
 void setupFrontLight() {
-  frontController = &FastLED.addLeds<NEOPIXEL, 11>(frontLeds, NUM_FRONT_LEDS);
+  frontController = &FastLED.addLeds<NEOPIXEL, 9>(frontLeds, NUM_FRONT_LEDS);
 
   fill_solid( &(frontLeds[0]), NUM_FRONT_LEDS, CRGB::Black);
   currentFrontState = FrontStates::FrontOff;
