@@ -8,12 +8,17 @@
 
 #define MAX_COMMAND_LENGTH 10
 
-#define INDICATOR_SPEED 500
-
-#define FRONT_STROBE_SPEED 50
-
-#define NUM_WALL_LEDS 7
+#define FRONT_PIN 9
 #define NUM_FRONT_LEDS 7
+#define DEFAULT_FRONT_COLOR CRGB::White
+
+#define LEFT_PIN 11
+#define NUM_LEFT_LEDS 7
+#define DEFAULT_LEFT_COLOR CRGB::Red
+
+#define RIGHT_PIN 2
+#define NUM_RIGHT_LEDS 7
+#define DEFAULT_RIGHT_COLOR CRGB::Red
 
 const CRGB colorMap[] = {
   CRGB::Red,

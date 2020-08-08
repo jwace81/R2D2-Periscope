@@ -1,8 +1,7 @@
 #include "Common.h"
-#include "Signal.h"
-#include "Walls.h"
-#include "FrontLight.h"
+#include "TopLights.h"
 #include "BottomLights.h"
+#include "LightPanel.h";
 
 #include "FastLED.h"
 #include "Wire.h"
@@ -12,7 +11,19 @@
 char commandBuffer[MAX_COMMAND_LENGTH];
 String commandString = "";
 volatile boolean commandComplete = false;
-unsigned long ledtimer = 0;      
+unsigned long ledtimer = 0;
+
+CRGB frontleds[NUM_FRONT_LEDS];
+CRGB leftleds[NUM_LEFT_LEDS];
+CRGB rightleds[NUM_RIGHT_LEDS];
+
+LightPanel *frontLights;
+LightPanel *leftLights;
+LightPanel *rightLights;
+
+#define NUM_ANIMATORS 3
+
+IAnimatorBase *animators[NUM_ANIMATORS];
 
 void setup() {
   Serial.begin(9600);
@@ -21,18 +32,22 @@ void setup() {
   Wire.begin(I2CADDRESS);
   Wire.onReceive(i2cEvent);
 
-  setupSignal();
-  setupWalls();
-  setupFrontLight();
+  setupTopLights();
   setupBottomLights();
 
-  FastLED.show();
+  frontLights = LightPanel::addLightPanel<FRONT_PIN>(frontleds, NUM_FRONT_LEDS, DEFAULT_FRONT_COLOR);
+  leftLights = LightPanel::addLightPanel<LEFT_PIN>(leftleds, NUM_LEFT_LEDS, DEFAULT_LEFT_COLOR);
+  rightLights = LightPanel::addLightPanel<RIGHT_PIN>(rightleds, NUM_RIGHT_LEDS, DEFAULT_RIGHT_COLOR);
+
+  animators[0] = frontLights;
+  animators[1] = leftLights;
+  animators[2] = rightLights;
+
+  Serial.println("Ready");
 }
 
 void loop() {
   unsigned long currentTime = millis();
-
-  statusLEDCheck();
   
   if(commandComplete) {
     commandString.trim();
@@ -47,15 +62,24 @@ void loop() {
 
     switch(commandBuffer[0]) {
       case 'S':
-        processSignalCommand(commandBuffer, commandLength);
+        processTopLightsCommand(commandBuffer, commandLength);
         break;
       
       case 'W':
-        processWallCommand(commandBuffer, commandLength);
+        leftLights->processCommand(commandBuffer, commandLength);
+        rightLights->processCommand(commandBuffer, commandLength);
+        break;
+      
+      case 'L':
+        leftLights->processCommand(commandBuffer, commandLength);
+        break;
+      
+      case 'R':
+        rightLights->processCommand(commandBuffer, commandLength);
         break;
 
       case 'F':
-        processFrontLightCommand(commandBuffer, commandLength);
+        frontLights->processCommand(commandBuffer, commandLength);
         break;
 
       case 'I':
@@ -63,37 +87,18 @@ void loop() {
         break;
 
       case 'X':
-        setSignalState(SIGNAL_OFF);
-        setWallState(WallOff);
-        setFrontLightState(FrontOff);
+        setTopLightsState(TOP_LIGHTS_OFF);
         setBottomLightsState(BOTTOM_LIGHTS_OFF);
         break;
     }
   }
 
-  processSignal(currentTime);
-  processWalls(currentTime);
-  processFrontLight(currentTime);
+  processTopLights(currentTime);
   processBottomLights(currentTime);
-}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////                                                                                               /////
-/////                            Onboard LED Communication Status Trigger                           /////
-/////                                                                                               /////
-///// statusLEDOn - Turn on the LED                                                                 /////
-///// statusLEDCheck - Check if enough time has passed and we should turn off the LED               /////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////////// 
-void statusLEDOn() {
-  //digitalWrite(STATUSLEDPIN, HIGH);
-  ledtimer = millis();
-}
-
-void statusLEDCheck() {
-  //if(millis() - ledtimer >= STATUSLEDMSECS)
-    //digitalWrite(STATUSLEDPIN, LOW);
+  for (int i = 0; i < NUM_ANIMATORS; i++) {
+    animators[i]->update(currentTime);
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -121,8 +126,6 @@ void serialEvent() {
     } else {
       commandString += inChar;
     }
-    
-    statusLEDOn();
   }
 }
 
@@ -147,5 +150,4 @@ void i2cEvent(int howMany)
     i++;
   }
   commandComplete = true;
-  statusLEDOn();
 }

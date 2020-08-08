@@ -85,7 +85,7 @@ void chase_2() {
 }
 
 void processBottomLights(unsigned long currentTime) {
-  if (currentBottomState == BOTTOM_LIGHTS_RANDOM && currentTime - lastBottomUpdate > INDICATOR_SPEED) {
+  if (currentBottomState == BOTTOM_LIGHTS_RANDOM && currentTime - lastBottomUpdate > 100) {
     fill_solid( &(bottomLeds[0]), BOTTOM_LEDS, CRGB::Black);
     bottomLeds[random(BOTTOM_LEDS)] = bottomColor;
     lastBottomUpdate = currentTime;
