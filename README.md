@@ -1,6 +1,19 @@
 # R2D2-Periscope
 **Work in progress** lighting system for the [periscope](https://www.thingiverse.com/thing:3752279) in Matthew Zwarts lift system.
 
-The lights are mostly 7 LED NeoPixel rings like [this one](https://www.amazon.com/gp/product/B0105VMT4S/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1).  These are controlled by an Arduino Nano.
+## Components
 
-At this time the system is not yet ready to use.
+#### Printed parts
+- Periscope Insert
+- Light strip mount
+
+#### Main components
+- Arduino Nano
+- 3 NeoPixel Jewels ![NeoPixel Jewel](data/neopixel_jewel.png)
+- 1 NeoPixel strip ![NeoPixel Strip](data/neopixel_strip.png)
+- 1.5mm Fiber Optic cable
+
+#### Bottom Lights
+- [Circuit Board](https://oshpark.com/shared_projects/699WXrat)
+- 12 WS2812 2020 Leds
+- 1 470 ohm smt resistor
