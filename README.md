@@ -9,8 +9,8 @@
 
 #### Main components
 - Arduino Nano
-- 3 NeoPixel Jewels ![NeoPixel Jewel](data/neopixel_jewel.png)
-- 1 NeoPixel strip ![NeoPixel Strip](data/neopixel_strip.png)
+- 3 NeoPixel Jewels ![NeoPixel Jewel](/data/neopixel_jewel.jpg)
+- 1 NeoPixel strip ![NeoPixel Strip](/data/neopixel_strip.jpg)
 - 1.5mm Fiber Optic cable
 
 #### Bottom Lights
