@@ -2,7 +2,7 @@
 #include "Signal.h"
 #include "Walls.h"
 #include "FrontLight.h"
-#include "StatusIndicator.h"
+#include "BottomLights.h"
 
 #include "FastLED.h"
 #include "Wire.h"
@@ -24,7 +24,7 @@ void setup() {
   setupSignal();
   setupWalls();
   setupFrontLight();
-  setupStatusIndicator();
+  setupBottomLights();
 
   FastLED.show();
 }
@@ -59,14 +59,14 @@ void loop() {
         break;
 
       case 'I':
-        processStatusIndicatorCommand(commandBuffer, commandLength);
+        processBottomLightsCommand(commandBuffer, commandLength);
         break;
 
       case 'X':
         setSignalState(SIGNAL_OFF);
         setWallState(WallOff);
         setFrontLightState(FrontOff);
-        setStatusIndicatorState(STATUS_INDICATOR_OFF);
+        setBottomLightsState(BOTTOM_LIGHTS_OFF);
         break;
     }
   }
@@ -74,7 +74,7 @@ void loop() {
   processSignal(currentTime);
   processWalls(currentTime);
   processFrontLight(currentTime);
-  processStatusIndicator(currentTime);
+  processBottomLights(currentTime);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
