@@ -31,15 +31,23 @@ void LightPanel::processCommand(char commandBuffer[], unsigned char commandLengt
   if (stateChanged) {
     switch(this->state) {
         case LIGHT_PANEL_ON:
+            Serial.println("Panel On");
             fill_solid( this->leds, this->numLeds, this->color);
             break;
 
         case LIGHT_PANEL_STROBE:
+            Serial.println("Panel Strobe");
             fill_solid( this->leds, this->numLeds, CRGB::Black);
+            break;
+
+        case LIGHT_PANEL_PULSE:
+            Serial.println("Panel Pulse");
+            fill_solid(this->leds, this->numLeds, this->color);
             break;
 
         case LIGHT_PANEL_OFF:
         default:
+            Serial.println("Panel Strobe");
             fill_solid( this->leds, this->numLeds, CRGB::Black);
             break;
     }
@@ -53,11 +61,15 @@ void LightPanel::strobe() {
   uint8_t bpm = map(this->speed, 0, 9, 60, 480);
   uint8_t lightState = beatquadwave8(bpm, 0, 1);
 
-  EVERY_N_MILLISECONDS(5)
-  {
-    fill_solid( this->leds, this->numLeds, lightState == 0 ? CRGB::Black : this->color);
-    this->ledController->showLeds(brightness);
-  }
+  fill_solid( this->leds, this->numLeds, lightState == 0 ? CRGB::Black : this->color);
+  this->ledController->showLeds(brightness);
+}
+
+void LightPanel::pulse() {
+  uint8_t bpm = map(this->speed, 0, 9, 10, 30);
+  unsigned char tempBrightness = beatquadwave8(bpm);
+  
+  this->ledController->showLeds(tempBrightness);
 }
 
 void LightPanel::update(unsigned long currentTime) {
@@ -65,5 +77,16 @@ void LightPanel::update(unsigned long currentTime) {
     case LIGHT_PANEL_STROBE:
       this->strobe();
       break;
+
+    case LIGHT_PANEL_PULSE:
+      this->pulse();
+      break;
   }
+}
+
+void LightPanel::stop()
+{
+  this->state = LIGHT_PANEL_OFF;
+  fill_solid( this->leds, this->numLeds, CRGB::Black);
+  this->ledController->showLeds(this->brightness);
 }

@@ -20,6 +20,11 @@
 #define NUM_RIGHT_LEDS 7
 #define DEFAULT_RIGHT_COLOR CRGB::Red
 
+#define TOP_LIGHTS_PIN 12
+#define NUM_TOP_LEDS 7
+#define TOP_LIGHTS_CHASE_SPEED 75
+#define DEFAULT_TOP_COLOR CRGB::Blue
+
 const CRGB colorMap[] = {
   CRGB::Red,
   CRGB::Yellow,

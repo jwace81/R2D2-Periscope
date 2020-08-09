@@ -8,7 +8,8 @@
 enum LightPanelStates {
   LIGHT_PANEL_OFF,
   LIGHT_PANEL_ON,
-  LIGHT_PANEL_STROBE
+  LIGHT_PANEL_STROBE,
+  LIGHT_PANEL_PULSE
 };
 
 class LightPanel : public IAnimatorBase {
@@ -30,14 +31,16 @@ class LightPanel : public IAnimatorBase {
           return new LightPanel(ledController, leds, numLeds, color);
         }
 
-        void processCommand(char commandBuffer[], unsigned char commandLength);
-        void update(unsigned long currentTime);
+        virtual void processCommand(char commandBuffer[], unsigned char commandLength);
+        virtual void update(unsigned long currentTime);
+        virtual void stop();
 
     protected:
         LightPanel(CLEDController *ledController, CRGB *leds, int numLeds, CRGB color);
 
     private:
         void strobe();
+        void pulse();
 };
 
 #endif

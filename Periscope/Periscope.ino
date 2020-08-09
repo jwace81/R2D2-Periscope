@@ -1,5 +1,5 @@
 #include "Common.h"
-#include "TopLights.h"
+#include "LightStrip.h"
 #include "BottomLights.h"
 #include "LightPanel.h";
 
@@ -20,8 +20,9 @@ CRGB rightleds[NUM_RIGHT_LEDS];
 LightPanel *frontLights;
 LightPanel *leftLights;
 LightPanel *rightLights;
+LightStrip *topLights;
 
-#define NUM_ANIMATORS 3
+#define NUM_ANIMATORS 4
 
 IAnimatorBase *animators[NUM_ANIMATORS];
 
@@ -32,18 +33,30 @@ void setup() {
   Wire.begin(I2CADDRESS);
   Wire.onReceive(i2cEvent);
 
-  setupTopLights();
   setupBottomLights();
 
   frontLights = LightPanel::addLightPanel<FRONT_PIN>(frontleds, NUM_FRONT_LEDS, DEFAULT_FRONT_COLOR);
   leftLights = LightPanel::addLightPanel<LEFT_PIN>(leftleds, NUM_LEFT_LEDS, DEFAULT_LEFT_COLOR);
   rightLights = LightPanel::addLightPanel<RIGHT_PIN>(rightleds, NUM_RIGHT_LEDS, DEFAULT_RIGHT_COLOR);
+  topLights = LightStrip::addLightStrip<TOP_LIGHTS_PIN>(NUM_TOP_LEDS, DEFAULT_TOP_COLOR);
 
   animators[0] = frontLights;
   animators[1] = leftLights;
   animators[2] = rightLights;
+  animators[3] = topLights;
 
   Serial.println("Ready");
+}
+
+void processSequence(char sequence) {
+  switch(sequence) {
+    case 0:
+      frontLights->processCommand("F18", 3);
+      leftLights->processCommand("L10", 3);
+      rightLights->processCommand("R10", 3);
+      topLights->processCommand("T245", 4);
+      break;
+  }
 }
 
 void loop() {
@@ -61,8 +74,8 @@ void loop() {
     commandComplete = false;
 
     switch(commandBuffer[0]) {
-      case 'S':
-        processTopLightsCommand(commandBuffer, commandLength);
+      case 'T':
+        topLights->processCommand(commandBuffer, commandLength);
         break;
       
       case 'W':
@@ -82,18 +95,25 @@ void loop() {
         frontLights->processCommand(commandBuffer, commandLength);
         break;
 
-      case 'I':
+      case 'B':
         processBottomLightsCommand(commandBuffer, commandLength);
         break;
 
       case 'X':
-        setTopLightsState(TOP_LIGHTS_OFF);
         setBottomLightsState(BOTTOM_LIGHTS_OFF);
+        for (int i = 0; i < NUM_ANIMATORS; i++) {
+          animators[i]->stop();
+        }
+        break;
+
+      case 'S':
+        if (commandLength > 1 && isDigit(commandBuffer[1])) {
+          processSequence(commandBuffer[1] - '0');
+        }
         break;
     }
   }
 
-  processTopLights(currentTime);
   processBottomLights(currentTime);
 
   for (int i = 0; i < NUM_ANIMATORS; i++) {
