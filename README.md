@@ -17,3 +17,6 @@
 - [Circuit Board](https://oshpark.com/shared_projects/699WXrat)
 - 12 WS2812 2020 Leds
 - 1 470 ohm smt resistor
+
+## Wiring Guide
+![Wiring Diagram](/data/Periscope_wiring.png)
