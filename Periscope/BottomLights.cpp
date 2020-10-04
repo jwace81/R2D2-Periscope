@@ -1,101 +1,79 @@
 #include "BottomLights.h"
+#include "AnimationCommon.h"
 
-#define BOTTOM_LEDS 12
+#define INDICATOR_SPEED 500
 
-CRGB bottomLeds[BOTTOM_LEDS];
-CRGB bottomColor = CRGB::Red;
-CLEDController *bottomController;
-unsigned char bottomBrightness = 64;
-int currentBottomState = BottomStates::BOTTOM_LIGHTS_OFF;
-unsigned long lastBottomUpdate;
-int sweepLed = 0;
-
-void setupBottomLights() {
-  bottomController = &FastLED.addLeds<NEOPIXEL, 10>(bottomLeds, BOTTOM_LEDS);
-
-  setBottomLightsState(BottomStates::BOTTOM_LIGHTS_OFF);
+BottomLights::BottomLights(CLEDController *ledController, CRGB *leds, int numLeds, CRGB color) {
+  this->numLeds = numLeds;
+  this->color = color;
+  this->ledController = ledController;
+  this->leds = leds;
+  fill_solid( this->leds, this->numLeds, CRGB::Black);
+  this->ledController->showLeds(this->brightness);
+  this->state = BOTTOM_LIGHTS_OFF;
 }
 
-void setBottomLightsState(int mode, CRGB color) {
-  currentBottomState = mode;
-  bottomColor = color;
-  
-  switch(currentBottomState) {
-    case BOTTOM_LIGHTS_RANDOM:
-      Serial.println("Status Indicator Random");
-      break;
-
-    case BOTTOM_LIGHTS_ALL_ON:
-      {
-        Serial.println("Status Indicator All On");
-        fill_solid( &(bottomLeds[0]), BOTTOM_LEDS, bottomColor);
-      }
-      break;
-
-    case BOTTOM_LIGHTS_SWEEP:
-      Serial.println("Status Indicator Sweep");
-      break;
-  
-    case BOTTOM_LIGHTS_OFF:
-    default:
-      {
-        Serial.println("Bottom Lights Off");
-        fill_solid( &(bottomLeds[0]), BOTTOM_LEDS, CRGB::Black);
-      }
-      break;
-  }
-
-  lastBottomUpdate = millis();
-  bottomController->showLeds(bottomBrightness);
-}
-
-void processBottomLightsCommand(char commandBuffer[], unsigned char commandLength) {
+void BottomLights::processCommand(char commandBuffer[], unsigned char commandLength) {
   bool stateChanged = false;
   if (commandLength > 1 && isDigit(commandBuffer[1])) {
-    currentBottomState = commandBuffer[1] - '0';
+    this->state = commandBuffer[1] - '0';
+    stateChanged = true;
+  }
+
+  if (commandLength > 2 && isDigit(commandBuffer[2])) {
+    this->color = colorMap[commandBuffer[2] - '0'];
     stateChanged = true;
   }
   
+  if (commandLength > 3 && isDigit(commandBuffer[3])) {
+    this->speed = commandBuffer[3] - '0';
+    stateChanged = true;
+  }
+
   if (stateChanged) {
-    setBottomLightsState(currentBottomState);
+    switch(this->state) {
+      case BOTTOM_LIGHTS_ALL_ON:
+        fill_solid(this->leds, this->numLeds, this->color);
+        break;
+
+      case BOTTOM_LIGHTS_RANDOM:
+        fill_solid(this->leds, this->numLeds, CRGB::Black);
+        break;
+
+      case BOTTOM_LIGHTS_OFF:
+      default:
+        this->state = BOTTOM_LIGHTS_OFF;
+        fill_solid( leds, this->numLeds, CRGB::Black);
+        break;
+    }
+
+    this->ledController->showLeds(this->brightness);
+    this->lastUpdate = millis();
   }
 }
 
-uint8_t beatquadwave8_2( accum88 beats_per_minute, uint8_t lowest = 0, uint8_t highest = 255,
-                             uint32_t timebase = 0, uint8_t phase_offset = 0)
-{
-  uint8_t beat = beat8( beats_per_minute, timebase);
-  uint8_t beatsin = quadwave8( beat + phase_offset);
-  uint8_t rangewidth = highest - lowest;
-  uint8_t scaledbeat = scale8( beatsin, rangewidth);
-  uint8_t result = lowest + scaledbeat;
-  return result;
-}
-
-void chase_2() {
-  uint8_t bpm = map(20, 0, 9, 10, 60);
-  sweepLed = beatquadwave8_2(bpm, 0, BOTTOM_LEDS - 1);
-
-  EVERY_N_MILLISECONDS(5)
-  {
-    fadeToBlackBy(bottomLeds, BOTTOM_LEDS, 5);
-    bottomLeds[sweepLed] = bottomColor;
-    bottomController->showLeds(bottomBrightness);
-  }
-}
-
-void processBottomLights(unsigned long currentTime) {
-  if (currentBottomState == BOTTOM_LIGHTS_RANDOM && currentTime - lastBottomUpdate > 100) {
-    fill_solid( &(bottomLeds[0]), BOTTOM_LEDS, CRGB::Black);
-    bottomLeds[random(BOTTOM_LEDS)] = bottomColor;
-    lastBottomUpdate = currentTime;
-  
-    bottomController->showLeds(bottomBrightness);
-  }
-
-  switch(currentBottomState) {
-    case BOTTOM_LIGHTS_SWEEP:
-      chase_2();
+void BottomLights::update(unsigned long currentTime) {
+  switch(this->state) {
+    case BOTTOM_LIGHTS_RANDOM:
+      this->randomLights(currentTime);
       break;
+  }
+}
+
+void BottomLights::stop()
+{
+  this->state = BOTTOM_LIGHTS_OFF;
+  fill_solid( this->leds, this->numLeds, CRGB::Black);
+  this->ledController->showLeds(this->brightness);
+}
+
+void BottomLights::randomLights(unsigned long currentTime) {
+  if (currentTime - this->lastUpdate > INDICATOR_SPEED) {
+    fill_solid( &(this->leds[0]), this->numLeds, CRGB::Black);
+    int ledIndex = random(this->numLeds);
+    this->leds[ledIndex] = this->color;
+    this->lastUpdate = currentTime;
+
+    this->ledController->showLeds(this->brightness);
   }
 }

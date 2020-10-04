@@ -21,8 +21,9 @@ LightPanel *frontLights;
 LightPanel *leftLights;
 LightPanel *rightLights;
 LightStrip *topLights;
+BottomLights *bottomLights;
 
-#define NUM_ANIMATORS 4
+#define NUM_ANIMATORS 5
 
 IAnimatorBase *animators[NUM_ANIMATORS];
 
@@ -33,17 +34,17 @@ void setup() {
   Wire.begin(I2CADDRESS);
   Wire.onReceive(i2cEvent);
 
-  setupBottomLights();
-
   frontLights = LightPanel::addLightPanel<FRONT_PIN>(frontleds, NUM_FRONT_LEDS, DEFAULT_FRONT_COLOR);
   leftLights = LightPanel::addLightPanel<LEFT_PIN>(leftleds, NUM_LEFT_LEDS, DEFAULT_LEFT_COLOR);
   rightLights = LightPanel::addLightPanel<RIGHT_PIN>(rightleds, NUM_RIGHT_LEDS, DEFAULT_RIGHT_COLOR);
   topLights = LightStrip::addLightStrip<TOP_LIGHTS_PIN>(NUM_TOP_LEDS, DEFAULT_TOP_COLOR);
+  bottomLights = BottomLights::initialize<BOTTOM_LIGHTS_PIN>();
 
   animators[0] = frontLights;
   animators[1] = leftLights;
   animators[2] = rightLights;
   animators[3] = topLights;
+  animators[4] = bottomLights;
 
   Serial.println("Ready");
 }
@@ -55,6 +56,7 @@ void processSequence(char sequence) {
       leftLights->processCommand("L10", 3);
       rightLights->processCommand("R10", 3);
       topLights->processCommand("T245", 4);
+      bottomLights->processCommand("B10", 3);
       break;
   }
 }
@@ -96,11 +98,10 @@ void loop() {
         break;
 
       case 'B':
-        processBottomLightsCommand(commandBuffer, commandLength);
+        bottomLights->processCommand(commandBuffer, commandLength);
         break;
 
       case 'X':
-        setBottomLightsState(BOTTOM_LIGHTS_OFF);
         for (int i = 0; i < NUM_ANIMATORS; i++) {
           animators[i]->stop();
         }
@@ -113,8 +114,6 @@ void loop() {
         break;
     }
   }
-
-  processBottomLights(currentTime);
 
   for (int i = 0; i < NUM_ANIMATORS; i++) {
     animators[i]->update(currentTime);

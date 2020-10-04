@@ -25,6 +25,11 @@
 #define TOP_LIGHTS_CHASE_SPEED 75
 #define DEFAULT_TOP_COLOR CRGB::Blue
 
+#define BOTTOM_LIGHTS_PIN 10
+#define NUM_BOTTOM_LEDS 12
+#define DEFAULT_BOTTOM_COLOR CRGB::Red
+
+
 const CRGB colorMap[] = {
   CRGB::Red,
   CRGB::Yellow,
